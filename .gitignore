@@ -1,0 +1,6 @@
+
+# ignore build specific files
+*.d
+*.o
+*.elf
+

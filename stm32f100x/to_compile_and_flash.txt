@@ -1,0 +1,21 @@
+
+Change working directory to where the code resides.
+
+* To compile and link:
+
+    make
+
+* Connect st-util in a separate terminal:
+
+    st-util
+
+* Start debugging with gdb:
+
+    make debug
+
+* Flash the program into chip:
+
+    tar extended-remote :4242
+    load
+    continue
+
