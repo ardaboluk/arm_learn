@@ -13,17 +13,25 @@
 void Delay(uint32_t nTime);
 
 int main(void){
-    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure_LEDS;
+    GPIO_InitTypeDef GPIO_InitStructure_pushButton;
 
-    // Enable Peripheral Clocks
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    // Enable Peripheral Clocks for GPIOC (for LEDs) and GPIOA (for push-button)
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOA, ENABLE);
 
-    // Configure Pins
-    GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    // Configure Pins for both LEDs
+    GPIO_StructInit(&GPIO_InitStructure_LEDS);
+    GPIO_InitStructure_LEDS.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_8;  // for green and blue LEDs
+    GPIO_InitStructure_LEDS.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure_LEDS.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructure_LEDS);
+
+    // Configure Pins for the push-button
+    GPIO_StructInit(&GPIO_InitStructure_pushButton);
+    GPIO_InitStructure_pushButton.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure_pushButton.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_InitStructure_pushButton.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure_pushButton);
     
     // Configure SysTick Timer
     if(SysTick_Config(SystemCoreClock / 1000)){
@@ -33,9 +41,16 @@ int main(void){
     while(1){
         static int ledval = 0;
 
-        // toggle LED
+        // toggle the green LED
         GPIO_WriteBit(GPIOC, GPIO_Pin_9, (ledval) ? Bit_SET : Bit_RESET);
         ledval = 1 - ledval;
+
+        // if the button is pushed, turn the blue LED on, otherwise turn it off 
+        if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == Bit_RESET){
+            GPIO_WriteBit(GPIOC, GPIO_Pin_8, Bit_SET);
+        }else{
+            GPIO_WriteBit(GPIOC, GPIO_Pin_8, Bit_RESET);
+        }
 
         Delay(250);     // wait 250ms
     }
